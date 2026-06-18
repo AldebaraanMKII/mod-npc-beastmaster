@@ -1085,15 +1085,19 @@ public:
   void OnPlayerLogin(Player *player) override {
     if (sConfigMgr->GetOption<bool>("BeastMaster.Enable", true)) {
       // Fix for non-hunters losing pet spells on login due to core spell validation
-      if (player->getClass() != CLASS_HUNTER) {
+    if (player->getClass() != CLASS_HUNTER) {
+        // FIX: Only trigger if the pet in character_pet is a HUNTER_PET (type 1)
+        // standard class summons/minions use SUMMON_PET (type 2)
         QueryResult res = CharacterDatabase.Query(
-            "SELECT 1 FROM character_pet WHERE owner = {}", player->GetGUID().GetCounter());
-        
+            "SELECT 1 FROM character_pet WHERE owner = {} AND PetType = 1", 
+            player->GetGUID().GetCounter());
+
         bool trackTamed = sConfigMgr->GetOption<bool>("BeastMaster.TrackTamedPets", false);
         QueryResult res2;
         if (trackTamed) {
             res2 = CharacterDatabase.Query(
-                "SELECT 1 FROM beastmaster_tamed_pets WHERE owner_guid = {}", player->GetGUID().GetCounter());
+                "SELECT 1 FROM beastmaster_tamed_pets WHERE owner_guid = {}", 
+                player->GetGUID().GetCounter());
         }
 
         if (res || res2) {
